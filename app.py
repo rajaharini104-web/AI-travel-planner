@@ -21,7 +21,7 @@ st.set_page_config(
 # API CONFIGURATION
 # ==================================================
 
-MODEL_NAME = "llama-3.3-70b-versatile"
+MODEL_NAME = "llama-3.1-8b-instant"
 
 
 def get_api_key():
