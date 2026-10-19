@@ -1,46 +1,47 @@
 import os
-from datetime import date
+from datetime import date, timedelta
 
 import streamlit as st
 from groq import Groq
 
 
-# ==================================================
+# =====================================================
 # PAGE CONFIGURATION
-# ==================================================
+# =====================================================
 
 st.set_page_config(
     page_title="AI Travel Planner",
     page_icon="✈️",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    layout="wide"
 )
 
 
-# ==================================================
-# API CONFIGURATION
-# ==================================================
+# =====================================================
+# CONFIGURATION
+# =====================================================
 
 MODEL_NAME = "llama-3.1-8b-instant"
 
 
+# =====================================================
+# API KEY
+# =====================================================
+
 def get_api_key():
-    """Read the Groq API key from Streamlit secrets or environment."""
-
     try:
-        api_key = st.secrets.get("GROQ_API_KEY", "")
+        key = st.secrets.get("GROQ_API_KEY", "")
     except Exception:
-        api_key = ""
+        key = ""
 
-    if not api_key:
-        api_key = os.getenv("GROQ_API_KEY", "")
+    if not key:
+        key = os.environ.get("GROQ_API_KEY", "")
 
-    return api_key
+    return key
 
 
-# ==================================================
+# =====================================================
 # CUSTOM CSS
-# ==================================================
+# =====================================================
 
 st.markdown(
     """
@@ -49,40 +50,33 @@ st.markdown(
         background: linear-gradient(135deg, #eef7ff, #f8f4ff);
     }
 
-    .main-title {
+    .title {
         text-align: center;
-        color: #244a73;
         font-size: 42px;
         font-weight: 800;
-        margin-bottom: 5px;
+        color: #244a73;
+        padding-top: 10px;
     }
 
     .subtitle {
         text-align: center;
-        color: #52677d;
         font-size: 17px;
+        color: #52677d;
         margin-bottom: 25px;
     }
 
-    .stButton > button,
-    .stDownloadButton > button {
-        border-radius: 10px;
-        min-height: 45px;
-        font-weight: bold;
-    }
-
     div[data-testid="stForm"] {
-        background-color: rgba(255, 255, 255, 0.8);
+        background: rgba(255, 255, 255, 0.85);
         padding: 22px;
         border-radius: 15px;
         border: 1px solid #dce8f5;
     }
 
-    div[data-testid="stMetric"] {
-        background-color: white;
-        padding: 15px;
-        border-radius: 12px;
-        border: 1px solid #dce8f5;
+    .stButton button,
+    .stDownloadButton button {
+        border-radius: 10px;
+        font-weight: bold;
+        min-height: 45px;
     }
     </style>
     """,
@@ -90,76 +84,76 @@ st.markdown(
 )
 
 
-# ==================================================
+# =====================================================
 # HEADER
-# ==================================================
+# =====================================================
 
 st.markdown(
-    '<div class="main-title">✈️ AI Travel Planner</div>',
+    '<div class="title">✈️ AI Travel Planner</div>',
     unsafe_allow_html=True
 )
 
 st.markdown(
     '<div class="subtitle">'
-    'Plan your perfect three-day trip with AI!'
+    'Your personal AI assistant for planning unforgettable trips'
     '</div>',
     unsafe_allow_html=True
 )
 
 st.write(
-    "Discover amazing places, organize your activities, "
-    "and plan your trip according to your budget and interests."
+    "Plan a three-day trip based on your destination, "
+    "budget, interests, and travel preferences."
 )
 
 
-# ==================================================
+# =====================================================
 # SIDEBAR
-# ==================================================
+# =====================================================
 
 with st.sidebar:
-    st.header("🌍 About the Planner")
+
+    st.header("🌍 About the App")
 
     st.write(
-        "Your personal AI travel assistant creates a three-day "
-        "itinerary based on your destination, budget, interests, "
-        "and travel preferences."
+        "AI Travel Planner generates personalized travel "
+        "itineraries using artificial intelligence."
     )
 
     st.divider()
 
-    st.subheader("✨ Features")
+    st.subheader("Features")
 
-    st.write("🗺️ Personalized itinerary")
-    st.write("📅 Three-day trip planning")
-    st.write("💰 Estimated budget breakdown")
-    st.write("📍 Places to visit")
-    st.write("🍽️ Local food suggestions")
-    st.write("🚗 Transportation recommendations")
-    st.write("📥 Downloadable travel plan")
+    st.write("📍 Destination-based planning")
+    st.write("📅 Three-day itinerary")
+    st.write("💰 Budget estimation")
+    st.write("🍽️ Food recommendations")
+    st.write("🚗 Transport suggestions")
+    st.write("📥 Downloadable itinerary")
 
     st.divider()
 
-    st.caption("Built with Python, Streamlit, and Groq AI.")
+    st.caption("Python + Streamlit + Groq AI")
 
 
-# ==================================================
-# TRAVEL INPUT FORM
-# ==================================================
+# =====================================================
+# USER INPUT FORM
+# =====================================================
 
-with st.form("travel_planner_form"):
+with st.form("travel_form"):
 
     st.subheader("🧳 Enter Your Travel Details")
 
     col1, col2 = st.columns(2)
 
     with col1:
+
         destination = st.text_input(
-            "📍 Destination City",
-            placeholder="Example: Ooty, Chennai, Goa"
+            "Destination City",
+            placeholder="Example: Ooty, Goa, Mysuru"
         )
 
         budget = st.number_input(
-            "💰 Total Budget (₹)",
+            "Total Budget (₹)",
             min_value=1000,
             max_value=1000000,
             value=10000,
@@ -167,16 +161,16 @@ with st.form("travel_planner_form"):
         )
 
         travelers = st.number_input(
-            "👥 Number of Travelers",
+            "Number of Travelers",
             min_value=1,
             max_value=50,
-            value=2,
-            step=1
+            value=2
         )
 
     with col2:
+
         interests = st.multiselect(
-            "🎯 Your Interests",
+            "Select Your Interests",
             [
                 "Nature",
                 "Adventure",
@@ -193,7 +187,7 @@ with st.form("travel_planner_form"):
         )
 
         travel_style = st.selectbox(
-            "🧳 Travel Style",
+            "Travel Style",
             [
                 "Budget-Friendly",
                 "Comfortable",
@@ -206,21 +200,22 @@ with st.form("travel_planner_form"):
         )
 
         start_date = st.date_input(
-            "📅 Trip Start Date",
-            value=date.today()
+            "Trip Start Date",
+            value=date.today(),
+            min_value=date.today(),
+            max_value=date.today() + timedelta(days=730)
         )
 
     include_transport = st.checkbox(
-        "Include transportation costs in the budget",
+        "Include transportation in the budget",
         value=True
     )
 
-    special_requests = st.text_area(
-        "💬 Additional Preferences (Optional)",
+    additional_preferences = st.text_area(
+        "Additional Preferences (Optional)",
         placeholder=(
-            "Example: Vegetarian food, avoid crowded places, "
-            "suggest famous restaurants, or recommend "
-            "family-friendly attractions."
+            "Example: Vegetarian food, family-friendly places, "
+            "avoid crowded locations..."
         )
     )
 
@@ -230,102 +225,94 @@ with st.form("travel_planner_form"):
     )
 
 
-# ==================================================
-# GENERATE THE TRAVEL ITINERARY
-# ==================================================
+# =====================================================
+# GENERATE ITINERARY
+# =====================================================
 
 if submitted:
 
     if not destination.strip():
-        st.error("Please enter your destination city.")
+
+        st.error("Please enter a destination.")
 
     elif not interests:
+
         st.error("Please select at least one interest.")
+
+    elif MODEL_NAME == "PASTE_YOUR_AVAILABLE_MODEL_ID_HERE":
+
+        st.error(
+            "Please replace MODEL_NAME in app.py with a valid "
+            "model ID from the Groq Models page."
+        )
 
     else:
 
         api_key = get_api_key()
 
         if not api_key:
+
             st.error(
                 "Groq API key not found. Configure GROQ_API_KEY "
-                "in your local .streamlit/secrets.toml file or "
-                "in Streamlit Community Cloud secrets."
-            )
-
-            st.info(
-                "Do not place your API key directly in app.py "
-                "or upload it to a public GitHub repository."
+                "in Streamlit Cloud Secrets."
             )
 
         else:
 
-            client = Groq(api_key=api_key)
-
-            transport_instruction = (
-                "Include transportation costs in the budget."
-                if include_transport
-                else
-                "Exclude transportation costs from the budget "
-                "and state that they are not included."
-            )
-
             prompt = f"""
-You are a practical and knowledgeable AI travel planner.
+You are an experienced and practical AI travel planner.
 
-Create a personalized itinerary for exactly three days.
+Create a detailed three-day itinerary for the user.
 
 TRAVEL DETAILS
 
 Destination: {destination}
-Total budget: ₹{budget}
-Number of travelers: {travelers}
+Budget: INR {budget}
+Travelers: {travelers}
 Interests: {", ".join(interests)}
 Travel style: {travel_style}
-Trip start date: {start_date.strftime("%d %B %Y")}
-Transportation: {transport_instruction}
-Additional preferences: {special_requests.strip() or "None"}
+Start date: {start_date.strftime("%d %B %Y")}
+Include transportation costs: {include_transport}
+Additional preferences: {additional_preferences or "None"}
 
-REQUIREMENTS
+INSTRUCTIONS
 
-1. Create exactly three days of itinerary.
-2. Divide every day into morning, afternoon, and evening.
-3. Suggest attractions appropriate for the destination and interests.
-4. Group nearby attractions together where practical.
-5. Recommend local dishes and food options.
-6. Suggest suitable transportation options.
-7. Give an estimated budget breakdown in Indian Rupees.
-8. Consider accommodation, food, local transport, tickets, and other
-   relevant expenses.
-9. Respect the budget of ₹{budget} for {travelers} traveler(s).
-10. If the budget is insufficient, explain why and suggest adjustments.
-11. Do not claim to have checked live prices or availability.
-12. Clearly label costs as estimates.
-13. Do not invent exact opening hours, ticket prices, or schedules.
-14. Include useful safety, weather, and packing tips.
-15. Make the itinerary easy to read with headings and bullet points.
+1. Create exactly three days.
+2. Divide each day into morning, afternoon, and evening.
+3. Recommend relevant places and activities.
+4. Suggest local food and transportation options.
+5. Provide estimated costs in Indian Rupees.
+6. Respect the total budget for all travelers.
+7. Include accommodation and food costs where relevant.
+8. Clearly state whether transportation is included.
+9. Explain if the budget is insufficient.
+10. Do not invent verified ticket prices, opening hours,
+    hotel availability, or transport schedules.
+11. Clearly label all cost estimates.
+12. Include practical travel and safety tips.
+13. Use clear headings, bullet points, and tables.
 
 OUTPUT FORMAT
 
-# Three-Day Travel Itinerary: {destination}
+# Three-Day Travel Plan: {destination}
 
 ## Trip Overview
 
-## Day 1: Explore the Destination
+## Day 1
 Morning:
 Afternoon:
 Evening:
 Food suggestions:
 Estimated expenses:
 
-## Day 2: Discover More
+## Day 2
 Morning:
 Afternoon:
 Evening:
 Food suggestions:
 Estimated expenses:
 
-## Day 3: Final Day
+## Day 3
 Morning:
 Afternoon:
 Evening:
@@ -334,23 +321,18 @@ Estimated expenses:
 
 ## Estimated Budget Breakdown
 
-Show expense categories and estimated costs in INR.
-
 ## Local Food Recommendations
 
 ## Transportation Suggestions
 
-## Important Travel Tips
+## Travel Tips
 
-## Budget Summary
+## Final Budget Summary
 
-Compare the estimated total with the available budget.
-Clarify what is included and excluded.
+Compare estimated expenses with the user's budget.
 
-## Final Recommendation
-
-Remind the traveler to verify current prices, opening hours,
-weather, and availability before making bookings.
+Remind the user to verify current prices, opening hours,
+weather, and availability before making reservations.
 """
 
             st.divider()
@@ -358,8 +340,11 @@ weather, and availability before making bookings.
             st.subheader(f"🗺️ Your Trip to {destination}")
 
             try:
+
+                client = Groq(api_key=api_key)
+
                 with st.spinner(
-                    "✈️ Your AI travel assistant is preparing your itinerary..."
+                    "Planning your trip with AI... Please wait."
                 ):
 
                     response = client.chat.completions.create(
@@ -368,11 +353,11 @@ weather, and availability before making bookings.
                             {
                                 "role": "system",
                                 "content": (
-                                    "You are a reliable AI travel planner. "
-                                    "Create practical, organized, budget-aware "
-                                    "travel plans. Clearly label estimates and "
-                                    "never pretend uncertain information "
-                                    "has been verified."
+                                    "You are a practical and reliable "
+                                    "travel planning assistant. "
+                                    "Clearly label estimates and "
+                                    "never claim unverified information "
+                                    "is current."
                                 )
                             },
                             {
@@ -380,67 +365,86 @@ weather, and availability before making bookings.
                                 "content": prompt
                             }
                         ],
-                        temperature=0.4,
-                        max_tokens=3500
+                        temperature=0.3,
+                        max_tokens=3000
                     )
 
-                    generated_text = (
+                    itinerary = (
                         response.choices[0].message.content or ""
                     ).strip()
 
-                if generated_text:
+                if itinerary:
 
-                    st.success(
-                        "🎉 Your travel itinerary is ready!"
+                    st.success("Your travel plan is ready!")
+
+                    st.markdown(itinerary)
+
+                    safe_name = (
+                        destination.strip()
+                        .replace(" ", "_")
+                        .replace("/", "_")
+                        .replace("\\", "_")
                     )
 
-                    st.markdown(generated_text)
-
                     st.download_button(
-                        label="📥 Download Your Travel Plan",
-                        data=generated_text,
-                        file_name=(
-                            destination.strip().replace(" ", "_")
-                            + "_travel_plan.txt"
-                        ),
+                        label="📥 Download Travel Plan",
+                        data=itinerary,
+                        file_name=f"{safe_name}_travel_plan.txt",
                         mime="text/plain",
                         use_container_width=True
                     )
 
                     st.info(
-                        "Travel reminder: This itinerary is AI-generated. "
-                        "Verify current prices, opening hours, weather, "
-                        "transport options, and availability before booking."
+                        "This plan is AI-generated. Verify prices, "
+                        "opening hours, transport, weather, and "
+                        "availability before booking."
                     )
 
                 else:
+
                     st.warning(
-                        "The AI returned an empty response. Please try again."
+                        "The AI returned an empty response. "
+                        "Please try again."
                     )
 
             except Exception as error:
-                st.error(
-                    "We couldn't generate your travel itinerary."
-                )
 
-                st.write(
-                    "Check your internet connection, Groq API key, "
-                    "account usage limits, and model availability."
-                )
+                st.error("Unable to generate the travel plan.")
 
-                with st.expander("View technical error"):
-                    st.code(str(error))
+                error_text = str(error)
+
+                if "model_not_found" in error_text.lower():
+                    st.warning(
+                        "The model ID is invalid or unavailable "
+                        "to your account. Check Groq's current model "
+                        "list and update MODEL_NAME in app.py."
+                    )
+
+                elif "authentication" in error_text.lower() or "401" in error_text:
+                    st.warning(
+                        "Check that your Groq API key is correct "
+                        "and has not been revoked."
+                    )
+
+                elif "429" in error_text or "rate_limit" in error_text.lower():
+                    st.warning(
+                        "The API usage limit may have been reached. "
+                        "Check your Groq account's usage and limits."
+                    )
+
+                with st.expander("Technical error details"):
+                    st.code(error_text)
 
 
-# ==================================================
+# =====================================================
 # FOOTER
-# ==================================================
+# =====================================================
 
 st.divider()
 
 st.markdown(
     """
-    <div style="text-align: center; color: #52677d;">
+    <div style="text-align:center; color:#52677d;">
         ✈️ <b>AI Travel Planner</b><br>
         Built with Python, Streamlit, and Groq AI<br>
         Plan smarter. Travel better. Explore more! 🌍
